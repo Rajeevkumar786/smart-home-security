@@ -1,0 +1,212 @@
+{
+  "settings": {
+    "intruder_detection_enabled": true,
+    "recognition_threshold": 45,
+    "email_notifications": true,
+    "email_smtp_server": "smtp.gmail.com",
+    "email_smtp_port": 587,
+    "email_sender": "kumarprincekumar403@gmail.com",
+    "email_receiver": "kumarprincekumar403@gmail.com",
+    "email_password": "uktjbwfcilkpslty",
+    "sms_notifications": false,
+    "twilio_sid": "",
+    "twilio_auth_token": "",
+    "twilio_from": "",
+    "twilio_to": ""
+  },
+  "known_faces": [
+    "Rajeev"
+  ],
+  "logs": [],
+  "messages": [
+    {
+      "timestamp": "2026-06-17 01:30:39",
+      "type": "EMAIL",
+      "recipient": "None",
+      "content": "Intruder detected at 2026-06-17 01:30:39. Email alerts disabled.",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:30:39",
+      "type": "SMS",
+      "recipient": "None",
+      "content": "Intruder detected at 2026-06-17 01:30:39. SMS alerts disabled.",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:30:55",
+      "type": "EMAIL",
+      "recipient": "None",
+      "content": "Intruder detected at 2026-06-17 01:30:55. Email alerts disabled.",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:30:55",
+      "type": "SMS",
+      "recipient": "None",
+      "content": "Intruder detected at 2026-06-17 01:30:55. SMS alerts disabled.",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:30:56",
+      "type": "EMAIL",
+      "recipient": "In-App Console",
+      "content": "\ud83d\udd13 Aura Shield Info: Registered user 'Rajeev' was recognized at the front door (Confidence: 45%).",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:31:14",
+      "type": "EMAIL",
+      "recipient": "None",
+      "content": "Intruder detected at 2026-06-17 01:31:13. Email alerts disabled.",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:31:14",
+      "type": "SMS",
+      "recipient": "None",
+      "content": "Intruder detected at 2026-06-17 01:31:13. SMS alerts disabled.",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:31:29",
+      "type": "EMAIL",
+      "recipient": "None",
+      "content": "Intruder detected at 2026-06-17 01:31:29. Email alerts disabled.",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:31:29",
+      "type": "SMS",
+      "recipient": "None",
+      "content": "Intruder detected at 2026-06-17 01:31:29. SMS alerts disabled.",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:31:45",
+      "type": "EMAIL",
+      "recipient": "None",
+      "content": "Intruder detected at 2026-06-17 01:31:45. Email alerts disabled.",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:31:45",
+      "type": "SMS",
+      "recipient": "None",
+      "content": "Intruder detected at 2026-06-17 01:31:45. SMS alerts disabled.",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:44:45",
+      "type": "SMS",
+      "recipient": "None",
+      "content": "Intruder detected at 2026-06-17 01:44:44. SMS alerts disabled.",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:44:49",
+      "type": "EMAIL",
+      "recipient": "kumarprincekumar403@gmail.com",
+      "content": "\ud83d\udea8 Aura Shield Security Alert: Intruder detected at 2026-06-17 01:44:44! Please check your home security camera dashboard immediately.",
+      "status": "Delivered"
+    },
+    {
+      "timestamp": "2026-06-17 01:45:02",
+      "type": "SMS",
+      "recipient": "None",
+      "content": "Intruder detected at 2026-06-17 01:45:02. SMS alerts disabled.",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:45:07",
+      "type": "EMAIL",
+      "recipient": "kumarprincekumar403@gmail.com",
+      "content": "\ud83d\udea8 Aura Shield Security Alert: Intruder detected at 2026-06-17 01:45:02! Please check your home security camera dashboard immediately.",
+      "status": "Delivered"
+    },
+    {
+      "timestamp": "2026-06-17 01:45:13",
+      "type": "EMAIL",
+      "recipient": "In-App Console",
+      "content": "\ud83d\udd13 Aura Shield Info: Registered user 'Rajeev' was recognized at the front door (Confidence: 46%).",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:45:20",
+      "type": "SMS",
+      "recipient": "None",
+      "content": "Intruder detected at 2026-06-17 01:45:20. SMS alerts disabled.",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:45:25",
+      "type": "EMAIL",
+      "recipient": "kumarprincekumar403@gmail.com",
+      "content": "\ud83d\udea8 Aura Shield Security Alert: Intruder detected at 2026-06-17 01:45:20! Please check your home security camera dashboard immediately.",
+      "status": "Delivered"
+    },
+    {
+      "timestamp": "2026-06-17 01:45:43",
+      "type": "SMS",
+      "recipient": "None",
+      "content": "Intruder detected at 2026-06-17 01:45:43. SMS alerts disabled.",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:45:47",
+      "type": "EMAIL",
+      "recipient": "kumarprincekumar403@gmail.com",
+      "content": "\ud83d\udea8 Aura Shield Security Alert: Intruder detected at 2026-06-17 01:45:43! Please check your home security camera dashboard immediately.",
+      "status": "Delivered"
+    },
+    {
+      "timestamp": "2026-06-17 01:47:04",
+      "type": "SMS",
+      "recipient": "None",
+      "content": "Intruder detected at 2026-06-17 01:47:04. SMS alerts disabled.",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:47:04",
+      "type": "EMAIL",
+      "recipient": "In-App Console",
+      "content": "\ud83d\udd13 Aura Shield Info: Registered user 'Rajeev' was recognized at the front door (Confidence: 46%).",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:47:08",
+      "type": "EMAIL",
+      "recipient": "kumarprincekumar403@gmail.com",
+      "content": "\ud83d\udea8 Aura Shield Security Alert: Intruder detected at 2026-06-17 01:47:04! Please check your home security camera dashboard immediately.",
+      "status": "Delivered"
+    },
+    {
+      "timestamp": "2026-06-17 01:51:29",
+      "type": "SMS",
+      "recipient": "None",
+      "content": "Intruder detected at 2026-06-17 01:51:29. SMS alerts disabled.",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:51:34",
+      "type": "EMAIL",
+      "recipient": "kumarprincekumar403@gmail.com",
+      "content": "\ud83d\udea8 Aura Shield Security Alert: Intruder detected at 2026-06-17 01:51:29! Please check your home security camera dashboard immediately.",
+      "status": "Delivered"
+    },
+    {
+      "timestamp": "2026-06-17 01:51:44",
+      "type": "SMS",
+      "recipient": "None",
+      "content": "Intruder detected at 2026-06-17 01:51:44. SMS alerts disabled.",
+      "status": "Simulated"
+    },
+    {
+      "timestamp": "2026-06-17 01:51:49",
+      "type": "EMAIL",
+      "recipient": "kumarprincekumar403@gmail.com",
+      "content": "\ud83d\udea8 Aura Shield Security Alert: Intruder detected at 2026-06-17 01:51:44! Please check your home security camera dashboard immediately.",
+      "status": "Delivered"
+    }
+  ]
+}

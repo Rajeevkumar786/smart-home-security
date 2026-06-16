@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}System Settings - Aura Shield{% endblock %}
+
+{% block content %}
+<div class="header">
+    <div class="header-title">
+        <h1>System Settings</h1>
+        <p>Configure detection sensitivity and real-time communication protocols</p>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="badge {% if category == 'success' %}badge-success{% else %}badge-danger{% endif %}" style="display:block; width:100%; margin-bottom:24px; padding:12px; text-align:center; border-radius:10px;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<form action="{{ url_for('save_settings') }}" method="POST">
+    <div class="dashboard-grid">
+        <!-- Left Column: Detection Parameters -->
+        <div class="left-column">
+            <div class="card">
+                <h3 style="font-weight:600; margin-bottom:24px; display:flex; align-items:center; gap:8px;">
+                    ⚙️ Detection & Recognition
+                </h3>
+
+                <!-- Switch 1: Detection State -->
+                <div class="switch-container">
+                    <div class="switch-label">
+                        <span>Intruder Detection State</span>
+                        <p>When enabled, unrecognized faces will trigger alert tasks.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="intruder_detection_enabled" {% if settings.intruder_detection_enabled %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <!-- Range Slider: Threshold -->
+                <div class="form-group" style="margin-top:30px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <label style="margin:0;">Confidence Match Threshold</label>
+                        <span id="threshold-val" style="font-weight:700; color:var(--primary);">{{ settings.recognition_threshold }}%</span>
+                    </div>
+                    <input type="range" name="recognition_threshold" min="30" max="95" value="{{ settings.recognition_threshold }}" class="form-control" style="padding:0; height:8px; cursor:pointer;" oninput="updateThresholdLabel(this.value)">
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:8px;">Higher percentage requires a more precise match to categorize a face as authorized. Default is 60%.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Email SMTP Setup -->
+        <div class="right-column">
+            <div class="card">
+                <h3 style="font-weight:600; margin-bottom:24px; display:flex; align-items:center; gap:8px;">
+                    ✉️ Real-Time Email Alerts
+                </h3>
+
+                <!-- Switch 2: Email Alerts Enable -->
+                <div class="switch-container" style="margin-bottom:24px;">
+                    <div class="switch-label">
+                        <span>Enable Email Notifications</span>
+                        <p>Send snapshot alert immediately to receiver email via SMTP.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="email_notifications" id="email_notifications" {% if settings.email_notifications %}checked{% endif %} onchange="toggleEmailInputs(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <!-- SMTP details inputs -->
+                <div id="email-setup-fields" style="{% if not settings.email_notifications %}opacity:0.5; pointer-events:none;{% endif %} transition:all 0.3s ease;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email_smtp_server">SMTP Server</label>
+                            <input type="text" id="email_smtp_server" name="email_smtp_server" class="form-control" value="{{ settings.email_smtp_server or 'smtp.gmail.com' }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="email_smtp_port">Port</label>
+                            <input type="number" id="email_smtp_port" name="email_smtp_port" class="form-control" value="{{ settings.email_smtp_port or 587 }}">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email_sender">Sender Email</label>
+                        <input type="email" id="email_sender" name="email_sender" class="form-control" value="{{ settings.email_sender or '' }}" placeholder="sender@gmail.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email_password">Sender App Password</label>
+                        <input type="password" id="email_password" name="email_password" class="form-control" value="{{ settings.email_password or '' }}" placeholder="••••••••••••••••">
+                        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;">For Gmail, generate a 16-character "App Password" in Google Account Security.</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email_receiver">Receiver Email</label>
+                        <input type="email" id="email_receiver" name="email_receiver" class="form-control" value="{{ settings.email_receiver or '' }}" placeholder="receiver@gmail.com">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SMS Alerts Card -->
+        <div class="card" style="margin-top: 30px;">
+            <h3 style="font-weight:600; margin-bottom:24px; display:flex; align-items:center; gap:8px;">
+                📱 Real-Time SMS Alerts
+            </h3>
+
+            <!-- Switch: SMS Alerts Enable -->
+            <div class="switch-container" style="margin-bottom:24px;">
+                <div class="switch-label">
+                    <span>Enable SMS Notifications</span>
+                    <p>Send text alerts using Twilio when faces are detected.</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" name="sms_notifications" id="sms_notifications" {% if settings.sms_notifications %}checked{% endif %} onchange="toggleSMSInputs(this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <!-- Twilio details inputs -->
+            <div id="sms-setup-fields" style="{% if not settings.sms_notifications %}opacity:0.5; pointer-events:none;{% endif %} transition:all 0.3s ease;">
+                <div class="form-group">
+                    <label for="twilio_sid">Twilio Account SID</label>
+                    <input type="text" id="twilio_sid" name="twilio_sid" class="form-control" value="{{ settings.twilio_sid or '' }}" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                </div>
+
+                <div class="form-group">
+                    <label for="twilio_auth_token">Twilio Auth Token</label>
+                    <input type="password" id="twilio_auth_token" name="twilio_auth_token" class="form-control" value="{{ settings.twilio_auth_token or '' }}" placeholder="••••••••••••••••••••••••••••••••">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="twilio_from">Twilio "From" Number</label>
+                        <input type="text" id="twilio_from" name="twilio_from" class="form-control" value="{{ settings.twilio_from or '' }}" placeholder="+1234567890">
+                    </div>
+                    <div class="form-group">
+                        <label for="twilio_to">Recipient "To" Number</label>
+                        <input type="text" id="twilio_to" name="twilio_to" class="form-control" value="{{ settings.twilio_to or '' }}" placeholder="+919876543210">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="margin-top:30px; text-align:right;">
+    <button type="submit" class="btn btn-primary" style="padding: 14px 40px;">
+        Save Settings
+    </button>
+</div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function updateThresholdLabel(val) {
+        document.getElementById('threshold-val').innerText = val + '%';
+    }
+
+    function toggleEmailInputs(checked) {
+        const fields = document.getElementById('email-setup-fields');
+        if (checked) {
+            fields.style.opacity = '1';
+            fields.style.pointerEvents = 'auto';
+        } else {
+            fields.style.opacity = '0.5';
+            fields.style.pointerEvents = 'none';
+        }
+    }
+
+    function toggleSMSInputs(checked) {
+        const fields = document.getElementById('sms-setup-fields');
+        if (checked) {
+            fields.style.opacity = '1';
+            fields.style.pointerEvents = 'auto';
+        } else {
+            fields.style.opacity = '0.5';
+            fields.style.pointerEvents = 'none';
+        }
+    }
+</script>
+{% endblock %}

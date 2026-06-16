@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Alert Messages - Aura Shield{% endblock %}
+
+{% block content %}
+<div class="header">
+    <div class="header-title">
+        <h1>Alert Dispatch Center</h1>
+        <p>Sent notifications, logs, and communication archives</p>
+    </div>
+    <form action="{{ url_for('clear_messages') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all alert messages history?');">
+        <button type="submit" class="btn btn-secondary" style="border-color:rgba(244, 63, 94, 0.4); color:var(--danger);">
+            🗑️ Clear Messages
+        </button>
+    </form>
+</div>
+
+<div class="card">
+    <h3 style="font-weight:600; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
+        ✉️ Dispatch Archives
+    </h3>
+
+    {% if not messages %}
+    <div class="video-placeholder" style="margin:100px 0;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px; height:40px;">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+        </svg>
+        <p style="font-size:0.85rem;">No alerts have been dispatched yet.</p>
+    </div>
+    {% else %}
+    <div class="table-container">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Type</th>
+                    <th>Recipient</th>
+                    <th>Message Details</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for msg in messages|reverse %}
+                <tr>
+                    <td style="font-weight:500; white-space:nowrap;">{{ msg.timestamp }}</td>
+                    <td>
+                        {% if msg.type == 'SMS' %}
+                            <span class="badge" style="background:rgba(99, 102, 241, 0.15); border-color:#6366f1; color:#a5b4fc;">📱 SMS</span>
+                        {% else %}
+                            <span class="badge badge-success">📧 Email</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-family:monospace; font-size:0.9rem;">{{ msg.recipient }}</td>
+                    <td style="font-size:0.9rem; max-width:400px; line-height:1.4;">{{ msg.content }}</td>
+                    <td>
+                        {% if msg.status == 'Delivered' %}
+                            <span class="badge badge-success" style="box-shadow:0 0 8px var(--success-glow);">Delivered</span>
+                        {% elif msg.status == 'Simulated' %}
+                            <span class="badge" style="background:rgba(245, 158, 11, 0.1); border-color:#f59e0b; color:#f59e0b;">Simulated</span>
+                        {% else %}
+                            <span class="badge badge-danger">{{ msg.status }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

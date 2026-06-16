@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Activity Logs - Aura Shield{% endblock %}
+
+{% block content %}
+<div class="header">
+    <div class="header-title">
+        <h1>Activity Logs</h1>
+        <p>Comprehensive historical logs of all detections and alerts</p>
+    </div>
+    <form action="{{ url_for('clear_logs') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all historical logs? This cannot be undone.');">
+        <button type="submit" class="btn btn-secondary" style="border-color:rgba(244, 63, 94, 0.4); color:var(--danger);">
+            🗑️ Clear History
+        </button>
+    </form>
+</div>
+
+<div class="card">
+    <h3 style="font-weight:600; margin-bottom:20px;">📜 Security Timeline</h3>
+
+    {% if not logs %}
+    <div class="video-placeholder" style="margin:100px 0;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px; height:40px;">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <p style="font-size:0.85rem;">No activities logged yet.</p>
+    </div>
+    {% else %}
+    <div class="table-container">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Snapshot</th>
+                    <th>Event Category</th>
+                    <th>Detail</th>
+                    <th>Confidence</th>
+                    <th>Action Taken</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs|reverse %}
+                <tr>
+                    <td style="font-weight:500;">{{ log.timestamp }}</td>
+                    <td>
+                        {% if log.image %}
+                            {% if log.is_intruder %}
+                                <img src="{{ url_for('get_intruder_image', filename=log.image) }}" alt="Snapshot" style="width:50px; height:40px; border-radius:4px; object-fit:cover; border:1px solid rgba(255, 255, 255, 0.1);">
+                            {% else %}
+                                <img src="{{ url_for('get_known_face_image', filename=log.image) }}" alt="Snapshot" style="width:50px; height:40px; border-radius:4px; object-fit:cover; border:1px solid rgba(255, 255, 255, 0.1);">
+                            {% endif %}
+                        {% else %}
+                            <span style="color:var(--text-muted);">None</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if log.is_intruder %}
+                            <span class="badge badge-danger">Intruder Detected</span>
+                        {% else %}
+                            <span class="badge badge-success">Authorized Presence</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if log.is_intruder %}
+                            Unknown Person
+                        {% else %}
+                            {{ log.name }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if log.confidence %}
+                            {{ log.confidence }}%
+                        {% else %}
+                            --
+                        {% endif %}
+                    </td>
+                    <td style="color:var(--text-muted);">
+                        {% if log.action %}
+                            {{ log.action }}
+                        {% else %}
+                            System Logged
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

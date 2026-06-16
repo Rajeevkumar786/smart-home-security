@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Face Registry - Aura Shield{% endblock %}
+
+{% block content %}
+<div class="header">
+    <div class="header-title">
+        <h1>Face Registry</h1>
+        <p>Manage registered family members and authorized persons</p>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Left Column: Add New Face -->
+    <div class="left-column">
+        <div class="card">
+            <h3 style="font-weight:600; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
+                👤 Register New User
+            </h3>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="badge {% if category == 'success' %}badge-success{% else %}badge-danger{% endif %}" style="display:block; width:100%; margin-bottom:16px; padding:10px; text-align:center;">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('register_user') }}" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="username">Full Name</label>
+                    <input type="text" id="username" name="username" class="form-control" placeholder="Enter person's name (e.g., Rajeev Kumar)" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Registration Mode</label>
+                    <div style="display:flex; gap:16px; margin-bottom:12px;">
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-main);">
+                            <input type="radio" name="input_mode" value="upload" checked onclick="toggleInputMode('upload')" style="accent-color:var(--primary);">
+                            Upload Photo
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--text-muted);" id="capture-label">
+                            <input type="radio" name="input_mode" value="capture" onclick="toggleInputMode('capture')" style="accent-color:var(--primary);">
+                            Capture from Webcam
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Mode A: Upload File -->
+                <div class="form-group" id="upload-group">
+                    <label for="userimage">Choose Image File</label>
+                    <input type="file" id="userimage" name="userimage" class="form-control" accept="image/png, image/jpeg, image/jpg">
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;">Upload a clear, front-facing photo of the person's face.</p>
+                </div>
+
+                <!-- Mode B: Capture Snapshot -->
+                <div class="form-group" id="capture-group" style="display:none; text-align:center;">
+                    <div class="video-stream-container" style="aspect-ratio:4/3; max-width:320px; margin: 0 auto 12px; border-radius:8px;">
+                        <img id="capture-preview" src="{{ url_for('video_feed') }}" class="video-stream-img" alt="Camera Feed">
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="captureSnapshot()" style="padding: 8px 16px; font-size: 0.85rem;">
+                        📸 Take Snapshot
+                    </button>
+                    <input type="hidden" id="captured_image_data" name="captured_image_data">
+                    <div id="capture-success-badge" class="badge badge-success" style="display:none; margin-top:8px;">Snapshot captured!</div>
+                </div>
+
+                <div style="margin-top:30px;">
+                    <button type="submit" class="btn btn-primary" style="width:100%;">
+                        Save and Train System
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right Column: Registered Users list -->
+    <div class="right-column">
+        <div class="card" style="height:100%;">
+            <h3 style="font-weight:600; margin-bottom:20px;">
+                👥 Registered Users Database
+            </h3>
+            
+            {% if not known_faces %}
+            <div class="video-placeholder" style="margin:80px 0;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px; height:40px;">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                </svg>
+                <p style="font-size:0.85rem;">No registered users. Use the form to add family members.</p>
+            </div>
+            {% else %}
+            <div class="user-grid">
+                {% for face in known_faces %}
+                <div class="user-card">
+                    <img class="user-avatar" src="{{ url_for('get_known_face_image', filename=face.image) }}" alt="{{ face.name }}">
+                    <div class="user-name">{{ face.name }}</div>
+                    <div class="user-status">Authorized</div>
+                    <form action="{{ url_for('delete_user', filename=face.image) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this face?');">
+                        <button type="submit" class="delete-user-btn" title="Delete User">&times;</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleInputMode(mode) {
+        const uploadGrp = document.getElementById('upload-group');
+        const captureGrp = document.getElementById('capture-group');
+        const uploadRadioLabel = document.querySelector('label[for="userimage"]');
+        const captureRadioLabel = document.getElementById('capture-label');
+
+        if (mode === 'upload') {
+            uploadGrp.style.display = 'block';
+            captureGrp.style.display = 'none';
+            document.getElementById('userimage').required = true;
+            document.getElementById('captured_image_data').value = '';
+            document.getElementById('capture-success-badge').style.display = 'none';
+        } else {
+            uploadGrp.style.display = 'none';
+            captureGrp.style.display = 'block';
+            document.getElementById('userimage').required = false;
+            document.getElementById('userimage').value = '';
+        }
+    }
+
+    // Capture dynamic image from the video feed stream
+    function captureSnapshot() {
+        const canvas = document.createElement('canvas');
+        const img = document.getElementById('capture-preview');
+        
+        // Match natural size or fallback
+        canvas.width = img.naturalWidth || 640;
+        canvas.height = img.naturalHeight || 480;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        // Convert to base64 jpeg
+        const dataUrl = canvas.toDataURL('image/jpeg');
+        document.getElementById('captured_image_data').value = dataUrl;
+        
+        document.getElementById('capture-success-badge').style.display = 'inline-block';
+    }
+
+    // Set validation on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('userimage').required = true;
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Aura Shield{% endblock %}
+
+{% block content %}
+<div class="header">
+    <div class="header-title">
+        <h1>System Overview</h1>
+        <p>Real-time surveillance monitoring and face recognition</p>
+    </div>
+    <div id="system-status" class="live-badge">System Live</div>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Left Column: Video Feed and Stats -->
+    <div class="left-column">
+        <!-- Live Video Feed Card -->
+        <div class="card video-card">
+            <div class="video-header">
+                <h3 style="font-weight: 600; display:flex; align-items:center; gap:8px;">
+                    <span style="color:var(--primary);">●</span> Active Camera Feed
+                </h3>
+                <span style="font-size: 0.8rem; color: var(--text-muted);" id="resolution-info">640 x 480 | 30 FPS</span>
+            </div>
+            
+            <div class="video-stream-container">
+                <img id="video-feed-img" src="{{ url_for('video_feed') }}" class="video-stream-img" alt="Surveillance Stream" onerror="handleStreamError()">
+                <div id="video-fallback" class="video-placeholder" style="display: none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                        <circle cx="12" cy="13" r="4"/>
+                        <line x1="1" y1="1" x2="23" y2="23" stroke="#f43f5e" stroke-width="3"/>
+                    </svg>
+                    <span>Camera offline or feed disconnected</span>
+                    <button class="btn btn-secondary" style="margin-top: 10px; padding: 6px 12px; font-size: 0.8rem;" onclick="retryStream()">Retry Connection</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats Cards Row (Clickable links to details) -->
+        <div class="stats-row">
+            <a href="{{ url_for('database') }}" style="text-decoration: none; color: inherit; display: block;" title="View Registered Users details">
+                <div class="card stat-card" onclick="window.location.href='{{ url_for('database') }}'" style="cursor: pointer;">
+                    <div class="stat-icon primary">👥</div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stat-registered-count">{{ registered_count }}</span>
+                        <span class="stat-label">Registered Users</span>
+                    </div>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('logs') }}" style="text-decoration: none; color: inherit; display: block;" title="View Intruder Alerts logs">
+                <div class="card stat-card" onclick="window.location.href='{{ url_for('logs') }}'" style="cursor: pointer;">
+                    <div class="stat-icon danger">⚠️</div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stat-intruder-count">{{ intruder_count }}</span>
+                        <span class="stat-label">Intruder Alerts</span>
+                    </div>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('settings') }}" style="text-decoration: none; color: inherit; display: block;" title="Configure Notifications settings">
+                <div class="card stat-card" onclick="window.location.href='{{ url_for('settings') }}'" style="cursor: pointer;">
+                    <div class="stat-icon success">✉️</div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stat-email-status">{% if email_notifications %}Active{% else %}Inactive{% endif %}</span>
+                        <span class="stat-label">Email Notifications</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Right Column: Recent Alerts & Project Info -->
+    <div class="right-column">
+        <!-- Recent Intruder Alerts Card -->
+        <div class="card" style="margin-bottom: 30px; display: flex; flex-direction: column;">
+            <h3 style="font-weight: 600; margin-bottom: 20px; display:flex; align-items:center; gap:8px;">
+                🚨 Recent Intruder Alerts
+            </h3>
+            
+            <div id="no-alerts-placeholder" class="video-placeholder" style="margin: 40px 0; {% if recent_intruders %}display: none;{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 40px; height: 40px;">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    <path d="m9 12 2 2 4-4"/>
+                </svg>
+                <p style="font-size: 0.85rem;">No security alerts triggered today.</p>
+            </div>
+            
+            <div id="alerts-feed-list" class="alert-feed" style="max-height: 260px;">
+                {% for log in recent_intruders %}
+                <div class="alert-item">
+                    <img class="alert-img" src="{{ url_for('get_intruder_image', filename=log.image) }}" alt="Intruder Snapshot">
+                    <div class="alert-details">
+                        <span class="alert-title">Intruder Detected</span>
+                        <span class="alert-time">{{ log.timestamp }}</span>
+                    </div>
+                    <a class="alert-download-btn" href="{{ url_for('get_intruder_image', filename=log.image) }}" download title="Download Snapshot">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Project Info Card -->
+        <div class="card">
+            <h3 style="font-weight: 600; margin-bottom: 16px; display:flex; align-items:center; gap:8px;">
+                🎓 Project Information
+            </h3>
+            <div style="font-size: 0.9rem; line-height: 1.5;">
+                <div style="margin-bottom: 12px; border-bottom: 1px solid var(--border-card); padding-bottom: 10px;">
+                    <strong style="color:var(--primary); display:block; margin-bottom:4px;">Project Supervisor</strong>
+                    <span>Mr. Avinash Kumar Singh</span>
+                </div>
+                <div>
+                    <strong style="color:var(--primary); display:block; margin-bottom:6px;">Team Members (SR Group 65)</strong>
+                    <ul style="list-style:none; display:flex; flex-direction:column; gap:6px;">
+                        <li style="display:flex; justify-content:space-between;">
+                            <span>Rajeev Kumar</span>
+                            <span style="color:var(--text-muted);">2302840100170</span>
+                        </li>
+                        <li style="display:flex; justify-content:space-between;">
+                            <span>Deepak Keshri</span>
+                            <span style="color:var(--text-muted);">2302840100075</span>
+                        </li>
+                        <li style="display:flex; justify-content:space-between;">
+                            <span>Sneha Singh</span>
+                            <span style="color:var(--text-muted);">2302840100234</span>
+                        </li>
+                        <li style="display:flex; justify-content:space-between;">
+                            <span>Nivedita Singh</span>
+                            <span style="color:var(--text-muted);">2302840100144</span>
+                        </li>
+                    </ul>
+                </div>
+                <div style="margin-top: 12px; border-top: 1px solid var(--border-card); padding-top: 10px; font-size: 0.8rem; color: var(--text-muted); text-align: center;">
+                    United Institute of Technology, Prayagraj
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function handleStreamError() {
+        document.getElementById('video-feed-img').style.display = 'none';
+        document.getElementById('video-fallback').style.display = 'flex';
+        document.getElementById('system-status').innerText = 'System Offline';
+        document.getElementById('system-status').style.borderColor = 'var(--danger)';
+        document.getElementById('system-status').style.color = 'var(--danger)';
+        document.getElementById('system-status').style.background = 'rgba(244, 63, 94, 0.1)';
+    }
+
+    function retryStream() {
+        const img = document.getElementById('video-feed-img');
+        const fallback = document.getElementById('video-fallback');
+        const statusBadge = document.getElementById('system-status');
+        
+        fallback.style.display = 'none';
+        img.style.display = 'block';
+        img.src = "{{ url_for('video_feed') }}?t=" + new Date().getTime();
+        
+        statusBadge.innerText = 'System Live';
+        statusBadge.style.borderColor = 'var(--danger)';
+        statusBadge.style.color = 'var(--danger)';
+        statusBadge.style.background = 'rgba(244, 63, 94, 0.1)';
+    }
+
+    // Dynamic Updates when receiving SSE events
+    window.updateDashboardData = function(data) {
+        // Increment alerts counter
+        const alertValElem = document.getElementById('stat-intruder-count');
+        let currentCount = parseInt(alertValElem.innerText);
+        alertValElem.innerText = currentCount + 1;
+        
+        // Hide placeholder
+        document.getElementById('no-alerts-placeholder').style.display = 'none';
+        
+        // Add new alert to list
+        const feedList = document.getElementById('alerts-feed-list');
+        const newAlert = document.createElement('div');
+        newAlert.className = 'alert-item';
+        newAlert.style.animation = 'slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        newAlert.innerHTML = `
+            <img class="alert-img" src="/data/intruders/${data.image}" alt="Intruder Snapshot">
+            <div class="alert-details">
+                <span class="alert-title">Intruder Detected</span>
+                <span class="alert-time">${data.time}</span>
+            </div>
+            <a class="alert-download-btn" href="/data/intruders/${data.image}" download title="Download Snapshot">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+            </a>
+        `;
+        
+        feedList.insertBefore(newAlert, feedList.firstChild);
+    };
+</script>
+{% endblock %}
