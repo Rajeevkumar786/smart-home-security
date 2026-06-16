@@ -639,6 +639,54 @@ def messages_page():
     messages_list = db_data.get("messages", [])
     return render_template('messages.html', active_page='messages', messages=messages_list)
 
+@app.route('/process_frame', methods=['POST'])
+def process_frame():
+    data = request.get_json()
+    if not data or 'image' not in data:
+        return jsonify({"error": "No image data"}), 400
+        
+    try:
+        # Decode base64 image
+        image_data = re.sub('^data:image/.+;base64,', '', data['image'])
+        img_bytes = base64.b64decode(image_data)
+        np_arr = np.frombuffer(img_bytes, np.uint8)
+        frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        
+        if frame is None:
+            return jsonify({"error": "Decode failed"}), 400
+            
+        timestamp_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        db_data = load_db()
+        settings = db_data.get("settings", {})
+        detection_enabled = settings.get("intruder_detection_enabled", True)
+        threshold = settings.get("recognition_threshold", 45)
+        
+        # Process frame
+        annotated_frame, detections = face_engine.detect_and_recognize(frame, threshold)
+        
+        # Handle intruder / known face logic
+        for det in detections:
+            if det["is_intruder"]:
+                if detection_enabled:
+                    trigger_intruder_alert(frame, timestamp_str)
+            else:
+                name = det["name"]
+                filename = f"{name.replace(' ', '_')}.jpg"
+                if not os.path.exists(os.path.join(KNOWN_FACES_DIR, filename)):
+                    files = os.listdir(KNOWN_FACES_DIR)
+                    matching = [f for f in files if f.startswith(name.replace(' ', '_'))]
+                    filename = matching[0] if matching else "default.jpg"
+                trigger_known_face_log(name, det["confidence"], filename, timestamp_str)
+                
+        # Encode annotated frame back to base64
+        _, buffer = cv2.imencode('.jpg', annotated_frame)
+        encoded_img = base64.b64encode(buffer).decode('utf-8')
+        
+        return jsonify({"image": f"data:image/jpeg;base64,{encoded_img}"})
+    except Exception as e:
+        print(f"Error processing client frame: {e}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/clear_messages', methods=['POST'])
 def clear_messages():
     db_data = load_db()

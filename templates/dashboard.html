@@ -17,14 +17,24 @@
         <!-- Live Video Feed Card -->
         <div class="card video-card">
             <div class="video-header">
-                <h3 style="font-weight: 600; display:flex; align-items:center; gap:8px;">
+                <h3 style="font-weight: 600; display:flex; align-items:center; gap:8px;" id="feed-header-title">
                     <span style="color:var(--primary);">●</span> Active Camera Feed
                 </h3>
-                <span style="font-size: 0.8rem; color: var(--text-muted);" id="resolution-info">640 x 480 | 30 FPS</span>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button class="btn btn-secondary" id="enable-browser-cam-btn" style="padding: 4px 10px; font-size: 0.75rem; display: flex; align-items: center; gap: 4px;" onclick="startBrowserWebcam()">
+                        📷 Use My Webcam
+                    </button>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);" id="resolution-info">640 x 480 | 30 FPS</span>
+                </div>
             </div>
             
             <div class="video-stream-container">
                 <img id="video-feed-img" src="{{ url_for('video_feed') }}" class="video-stream-img" alt="Surveillance Stream" onerror="handleStreamError()">
+                
+                <!-- Hidden elements for local browser camera streaming -->
+                <video id="client-webcam-video" style="display: none;" autoplay playsinline></video>
+                <canvas id="client-webcam-canvas" style="display: none;" width="640" height="480"></canvas>
+                
                 <div id="video-fallback" class="video-placeholder" style="display: none;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
@@ -171,6 +181,106 @@
         statusBadge.style.borderColor = 'var(--danger)';
         statusBadge.style.color = 'var(--danger)';
         statusBadge.style.background = 'rgba(244, 63, 94, 0.1)';
+    }
+
+    let clientStream = null;
+    let streamInterval = null;
+
+    async function startBrowserWebcam() {
+        const video = document.getElementById('client-webcam-video');
+        const img = document.getElementById('video-feed-img');
+        const fallback = document.getElementById('video-fallback');
+        const btn = document.getElementById('enable-browser-cam-btn');
+        const headerTitle = document.getElementById('feed-header-title');
+        
+        try {
+            // Stop existing MJPEG stream
+            img.onerror = null;
+            img.src = "";
+            
+            // Request user webcam
+            clientStream = await navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    width: { ideal: 640 }, 
+                    height: { ideal: 480 } 
+                } 
+            });
+            
+            video.srcObject = clientStream;
+            video.play();
+            
+            fallback.style.display = 'none';
+            img.style.display = 'block';
+            
+            headerTitle.innerHTML = `<span style="color:var(--success);">●</span> Local Browser Webcam Active`;
+            btn.innerText = "🔌 Stop Browser Cam";
+            btn.onclick = stopBrowserWebcam;
+            
+            // Start streaming loop to server
+            startStreamingLoop();
+            
+        } catch (err) {
+            console.error("Error accessing local webcam:", err);
+            alert("Could not access your webcam. Please verify camera permissions in your browser.");
+            retryStream(); // fallback
+        }
+    }
+
+    function stopBrowserWebcam() {
+        const btn = document.getElementById('enable-browser-cam-btn');
+        const headerTitle = document.getElementById('feed-header-title');
+        
+        if (streamInterval) {
+            clearInterval(streamInterval);
+            streamInterval = null;
+        }
+        
+        if (clientStream) {
+            clientStream.getTracks().forEach(track => track.stop());
+            clientStream = null;
+        }
+        
+        btn.innerText = "📷 Use My Webcam";
+        btn.onclick = startBrowserWebcam;
+        headerTitle.innerHTML = `<span style="color:var(--primary);">●</span> Active Camera Feed`;
+        
+        retryStream(); // fallback
+    }
+
+    function startStreamingLoop() {
+        const video = document.getElementById('client-webcam-video');
+        const canvas = document.getElementById('client-webcam-canvas');
+        const ctx = canvas.getContext('2d');
+        const img = document.getElementById('video-feed-img');
+        
+        streamInterval = setInterval(async () => {
+            if (video.paused || video.ended) return;
+            
+            // Draw frame to canvas
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // base64 compression (60% quality)
+            const base64Img = canvas.toDataURL('image/jpeg', 0.6);
+            
+            try {
+                const response = await fetch("{{ url_for('process_frame') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ image: base64Img })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.image) {
+                        img.src = data.image; // Set the annotated frame returned by server
+                    }
+                }
+            } catch (err) {
+                console.error("Frame upload loop error:", err);
+            }
+        }, 130); // ~8 FPS
     }
 
     // Dynamic Updates when receiving SSE events
