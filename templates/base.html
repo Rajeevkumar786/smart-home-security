@@ -79,6 +79,23 @@
         </div>
     </div>
     
+    
+    <!-- Mobile Responsive Top Header Bar -->
+    <div class="mobile-header">
+        <button class="menu-toggle-btn" onclick="toggleMobileMenu()" aria-label="Toggle Menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+        <div class="logo-text" style="font-size: 1.1rem; font-weight:700;">AURA SHIELD</div>
+        <div style="width: 40px;"></div> <!-- Spacer to center the logo text -->
+    </div>
+
+    <!-- Sidebar Backdrop Drawer Overlay -->
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+
     <!-- Main Content Area -->
     <div class="main-content">
         <!-- Toast Notification Area -->
@@ -89,6 +106,13 @@
 
     <!-- Global JS to handle SSE or live events for intruder popups -->
     <script>
+        function toggleMobileMenu() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        }
+
         // Set up EventSource for real-time notification alerts
         const evtSource = new EventSource("{{ url_for('event_stream') }}");
         

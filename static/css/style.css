@@ -736,3 +736,129 @@ input:checked + .slider:before {
         opacity: 1;
     }
 }
+
+/* Hidden by default on desktop */
+.mobile-header {
+    display: none;
+}
+
+.sidebar-overlay {
+    display: none;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    body {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 260px;
+        box-shadow: 10px 0 40px rgba(0, 0, 0, 0.6);
+    }
+    
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px;
+        padding-top: 80px; /* Space for the fixed top mobile header */
+    }
+    
+    /* Top Navigation bar for Mobile screen */
+    .mobile-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 60px;
+        background: #0e0c24;
+        border-bottom: 1px solid var(--border-card);
+        padding: 0 20px;
+        z-index: 900;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    
+    .menu-toggle-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-main);
+        cursor: pointer;
+        padding: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .menu-toggle-btn svg {
+        width: 24px;
+        height: 24px;
+    }
+    
+    /* Backdrop blur overlay when sidebar drawer is open */
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 850;
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
+    }
+    
+    /* Stacking columns */
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .stats-row {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+    
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .header form, .header button {
+        width: 100%;
+    }
+    
+    .btn {
+        width: 100%;
+        padding: 10px 16px;
+    }
+    
+    .video-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .video-header div {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
