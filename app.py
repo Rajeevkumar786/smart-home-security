@@ -675,10 +675,10 @@ def event_stream():
 
     return Response(event_generator(), mimetype="text/event-stream")
 
+# Start the background thread for capturing video frames (outside __main__ to support Gunicorn/Render imports)
+capture_thread = threading.Thread(target=camera_stream_loop, daemon=True)
+capture_thread.start()
+
 if __name__ == '__main__':
-    # Start the background thread for capturing video frames
-    capture_thread = threading.Thread(target=camera_stream_loop, daemon=True)
-    capture_thread.start()
-    
-    # Run the web server
+    # Run the web server locally
     app.run(host='0.0.0.0', port=5000, debug=False)
